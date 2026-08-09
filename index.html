@@ -192,21 +192,31 @@
   </div>
 </div>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script>
-  // ── Replace with your own Firebase project config ──
+<!-- Firebase (modular SDK) -->
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    query,
+    orderBy,
+    onSnapshot
+  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+  // Your web app's Firebase configuration
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyBG4qRzSetbjZSJ_jL55276W0FzPgjMH-U",
+    authDomain: "redivo-b7fc3.firebaseapp.com",
+    projectId: "redivo-b7fc3",
+    storageBucket: "redivo-b7fc3.firebasestorage.app",
+    messagingSenderId: "962346026524",
+    appId: "1:962346026524:web:241a3f1fab6493be9941d9"
   };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
   const WHATSAPP_NUMBER = "2347037392295"; // 07037392295 in international format
 
@@ -312,12 +322,20 @@
     closeDataModal();
   }
 
+  // keep overlay click-to-close behavior
   document.getElementById('dataOverlay').addEventListener('click', (e) => {
     if(e.target.id === 'dataOverlay') closeDataModal();
   });
 
+  // Expose a few functions to window so inline onclick handlers still work
+  window.handleBuy = handleBuy;
+  window.closeDataModal = closeDataModal;
+  window.confirmDataOrder = confirmDataOrder;
+
   // ── Load products from Firestore, live ──
-  db.collection('products').orderBy('name').onSnapshot(snap => {
+  const productsCol = collection(db, 'products');
+  const productsQuery = query(productsCol, orderBy('name'));
+  onSnapshot(productsQuery, snap => {
     allProducts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     render();
   }, err => {
